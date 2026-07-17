@@ -1,3 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.8.0
+sentence-transformers==5.1.0
+
 fastapi
 uvicorn[standard]
 motor
@@ -14,9 +19,7 @@ lxml
 numpy
 scikit-learn
 nltk
-sentence-transformers
 spacy
-keybert
 apscheduler
 loguru
 python-dateutil
