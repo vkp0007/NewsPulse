@@ -15,10 +15,5 @@ CLUSTER_THRESHOLD = float(
     )
 )
 
-# Scheduler
-SCHEDULER_INTERVAL = int(
-    os.getenv(
-        "SCHEDULER_INTERVAL",
-        "30",
-    )
-)
+# API Security
+INGEST_API_KEY = os.getenv("INGEST_API_KEY")
