@@ -11,27 +11,15 @@ from api.routes.ingestion import router as ingestion_router
 from database.indexes import create_indexes
 from database.mongodb import client
 
-from services.scheduler.scheduler import (
-    start_scheduler,
-    stop_scheduler,
-)
 
+
+
+from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
-    
-
     await create_indexes()
-
-    start_scheduler()
-
     yield
-
-   
-
-    stop_scheduler()
-
     await client.close()
 
 

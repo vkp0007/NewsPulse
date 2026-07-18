@@ -78,9 +78,9 @@ class EmbeddingService:
             # Generate embeddings (ONE BATCH)
             # --------------------------------------------------
 
-            model = cls.get_model()
+        model = cls.get_model()
 
-            embeddings = model.encode(
+        embeddings = model.encode(
                 texts,
                 normalize_embeddings=True,
                 show_progress_bar=False,
@@ -90,7 +90,7 @@ class EmbeddingService:
             # Assign embeddings
             # --------------------------------------------------
 
-            for article, embedding in zip(
+        for article, embedding in zip(
                 articles,
                 embeddings,
             ):
