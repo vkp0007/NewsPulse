@@ -13,8 +13,8 @@ lxml
 numpy
 scikit-learn
 nltk
-#sentence-transformers
-#spacy
+sentence-transformers
+spacy
 
 loguru
 python-dateutil
