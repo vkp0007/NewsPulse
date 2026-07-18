@@ -8,10 +8,11 @@ on:
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    environment: production   # <-- Use your actual environment name
 
     steps:
       - name: Trigger News Ingestion
         run: |
           curl -X POST \
             -H "x-api-key: ${{ secrets.INGEST_API_KEY }}" \
-            "${{ secrets.INGEST_API_URL }}"
+            "https://newspulse-wfr4.onrender.com/ingest"
