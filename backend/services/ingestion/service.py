@@ -15,12 +15,13 @@ MAX_ARTICLES_PER_RUN = 10
 
 async def fetch_articles():
     try:
+        print("🚀 Starting news ingestion...")
+
         articles = []
         seen_urls = set()
 
         # Fetch and normalize RSS entries
         for source, url in RSS_FEEDS.items():
-
             feed = fetch_feed(url)
 
             for entry in feed.entries:
@@ -36,8 +37,11 @@ async def fetch_articles():
                 seen_urls.add(article.url)
                 articles.append(article)
 
+        print(f"✅ RSS fetched: {len(articles)} articles")
+
         # Extract article content
         articles = enrich_articles(articles)
+        print("✅ Content enrichment completed")
 
         # Existing URLs
         existing_urls = await ArticleRepository.get_existing_urls()
@@ -52,14 +56,18 @@ async def fetch_articles():
                 continue
 
             if not article.content.strip():
-                        continue
+                continue
 
             new_articles.append(article)
 
         # Process only a limited number of articles
         new_articles = new_articles[:MAX_ARTICLES_PER_RUN]
 
+        print(f"✅ New articles to process: {len(new_articles)}")
+
+        print("⏳ Generating embeddings...")
         EmbeddingService.generate_embeddings(new_articles)
+        print("✅ Embeddings generated")
 
         clustering_result = {
             "clusters_created": 0,
@@ -70,16 +78,21 @@ async def fetch_articles():
         inserted = 0
 
         if new_articles:
-
+            print("⏳ Processing clusters...")
             clustering_result = await ClusterService.process_articles(
-                 new_articles
+            new_articles
             )
+            print("✅ Clustering completed")
 
             articles_to_insert = clustering_result.pop("articles")
 
             inserted = len(articles_to_insert)
 
+            print("⏳ Saving articles...")
             await ArticleRepository.bulk_create(articles_to_insert)
+            print("✅ Articles saved")
+
+        print("🎉 News ingestion completed")
 
         return {
                     "processed": len(articles),
@@ -89,8 +102,9 @@ async def fetch_articles():
                     "semantic_duplicates": clustering_result["duplicates_skipped"],
                     "clusters_created": clustering_result["clusters_created"],
                     "clusters_updated": clustering_result["clusters_updated"],
-            }
+        }
 
     except Exception:
+        print("❌ News ingestion failed")
         traceback.print_exc()
         raise
