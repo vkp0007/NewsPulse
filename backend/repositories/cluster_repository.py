@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, UTC
+
 from bson import ObjectId
 
 from database.mongodb import db
@@ -44,20 +46,39 @@ class ClusterRepository:
         documents = await cursor.to_list(length=None)
 
         return [
-            cls.serialize(doc)
-            for doc in documents
-        ]
+             cls.serialize(doc)
+             for doc in documents
+        ]      
 
     @classmethod
     async def get_all_for_clustering(cls):
         """
         Used internally by ClusterService.
-        Returns embeddings.
+        Returns only clusters updated in the last 24 hours.
         """
 
-        cursor = cls.collection.find().sort(
-            "updated_at",
-            -1,
+        cutoff = datetime.now(UTC) - timedelta(days=1)
+
+        projection = {
+            "_id": 1,
+            "embedding": 1,
+            "keywords": 1,
+            "entities": 1,
+            "sources": 1,
+            "article_count": 1,
+            "start_time": 1,
+            "end_time": 1,
+            "updated_at": 1,
+        }
+
+        cursor = (
+            cls.collection.find(
+                {
+                    "updated_at": {"$gte": cutoff}
+                },
+                projection,
+            )
+            .sort("updated_at", -1)
         )
 
         return await cursor.to_list(length=None)
