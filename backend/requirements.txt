@@ -12,7 +12,7 @@ httpx
 feedparser
 trafilatura
 lxml
-numpy
+numpy==2.5.0
 scikit-learn
 nltk
 
