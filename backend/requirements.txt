@@ -20,7 +20,8 @@ torch==2.2.2
 transformers==4.41.2
 sentence-transformers==2.7.0
 spacy==3.8.14
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+
 
 loguru
 python-dateutil
