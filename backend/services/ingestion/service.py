@@ -10,7 +10,7 @@ from services.ingestion.feeds import RSS_FEEDS
 from services.ingestion.normalizer import normalize_entry
 from services.ingestion.parser import fetch_feed
 
-MAX_ARTICLES_PER_RUN = 10
+MAX_ARTICLES_PER_RUN = 5
 
 
 async def fetch_articles():
@@ -20,8 +20,9 @@ async def fetch_articles():
         articles = []
         seen_urls = set()
 
-        # Fetch and normalize RSS entries
+        # Fetch only the required number of RSS entries
         for source, url in RSS_FEEDS.items():
+
             feed = fetch_feed(url)
 
             for entry in feed.entries:
@@ -37,13 +38,18 @@ async def fetch_articles():
                 seen_urls.add(article.url)
                 articles.append(article)
 
+                if len(articles) >= MAX_ARTICLES_PER_RUN:
+                    break
+
+            if len(articles) >= MAX_ARTICLES_PER_RUN:
+                    break
+
         print(f"✅ RSS fetched: {len(articles)} articles")
 
-        # Extract article content
+        # Extract content only for selected articles
         articles = enrich_articles(articles)
         print("✅ Content enrichment completed")
 
-        # Existing URLs
         existing_urls = await ArticleRepository.get_existing_urls()
 
         url_duplicates = 0
@@ -60,27 +66,25 @@ async def fetch_articles():
 
             new_articles.append(article)
 
-        # Process only a limited number of articles
-        new_articles = new_articles[:MAX_ARTICLES_PER_RUN]
-
         print(f"✅ New articles to process: {len(new_articles)}")
 
-        print("⏳ Generating embeddings...")
-        EmbeddingService.generate_embeddings(new_articles)
-        print("✅ Embeddings generated")
-
         clustering_result = {
-            "clusters_created": 0,
-            "clusters_updated": 0,
-            "duplicates_skipped": 0,
+                "clusters_created": 0,
+                "clusters_updated": 0,
+                "duplicates_skipped": 0,
         }
 
         inserted = 0
 
         if new_articles:
+
+            print("⏳ Generating embeddings...")
+            EmbeddingService.generate_embeddings(new_articles)
+            print("✅ Embeddings generated")
+
             print("⏳ Processing clusters...")
             clustering_result = await ClusterService.process_articles(
-            new_articles
+                    new_articles
             )
             print("✅ Clustering completed")
 
@@ -89,14 +93,15 @@ async def fetch_articles():
             inserted = len(articles_to_insert)
 
             print("⏳ Saving articles...")
-            await ArticleRepository.bulk_create(articles_to_insert)
+            await ArticleRepository.bulk_create(
+                    articles_to_insert
+            )
             print("✅ Articles saved")
 
         print("🎉 News ingestion completed")
 
         return {
                     "processed": len(articles),
-                    "selected_for_processing": len(new_articles),
                     "inserted": inserted,
                     "url_duplicates": url_duplicates,
                     "semantic_duplicates": clustering_result["duplicates_skipped"],

@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from services.ingestion.extractor import extract_article
 
 
-MAX_WORKERS = 8
+MAX_WORKERS = 2
 
 
 def enrich_articles(articles):

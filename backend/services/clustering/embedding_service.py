@@ -82,6 +82,7 @@ class EmbeddingService:
 
         embeddings = model.encode(
                 texts,
+                batch_size=4,
                 normalize_embeddings=True,
                 show_progress_bar=False,
             )
