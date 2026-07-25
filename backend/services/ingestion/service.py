@@ -1,4 +1,13 @@
 import traceback
+import gc
+import os
+import psutil
+def log_memory(stage):
+    process = psutil.Process(os.getpid())
+    print(
+        f"🧠 {stage}: {process.memory_info().rss / 1024 / 1024:.2f} MB",
+        flush=True,
+    )
 
 from repositories.article_repository import ArticleRepository
 
@@ -78,15 +87,24 @@ async def fetch_articles():
 
         if new_articles:
 
-            print("⏳ Generating embeddings...")
-            EmbeddingService.generate_embeddings(new_articles)
-            print("✅ Embeddings generated")
+            print("⏳ Generating embeddings...", flush=True)
+            log_memory("Before embeddings")
 
-            print("⏳ Processing clusters...")
+            EmbeddingService.generate_embeddings(new_articles)
+            print("✅ Embeddings generated", flush=True)
+
+            log_memory("After embeddings")
+            print("✅ Embeddings generated", flush=True)
+
+            print("⏳ Processing clusters...", flush=True)
+            log_memory("Before clustering")
+
             clustering_result = await ClusterService.process_articles(
-                    new_articles
+            new_articles
             )
-            print("✅ Clustering completed")
+
+            log_memory("After clustering")
+            print("✅ Clustering completed", flush=True)
 
             articles_to_insert = clustering_result.pop("articles")
 
