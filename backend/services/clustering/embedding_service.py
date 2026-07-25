@@ -1,32 +1,19 @@
-from sentence_transformers import SentenceTransformer
+from sklearn.feature_extraction.text import HashingVectorizer
 
 
 class EmbeddingService:
 
-    _model = None
+    vectorizer = HashingVectorizer(
+        n_features=512,
+        stop_words="english",
+        alternate_sign=False,
+        norm="l2",
+    )
 
-    MODEL_NAME = "sentence-transformers/paraphrase-MiniLM-L3-v2"
     MAX_CONTENT_CHARS = 1500
 
     @classmethod
-    def get_model(cls):
-        """
-        Load the embedding model only once.
-        """
-        if cls._model is None:
-            print("STEP 1", flush=True)
-
-            cls._model = SentenceTransformer(cls.MODEL_NAME)
-
-            print("STEP 2", flush=True)
-
-        return cls._model
-
-    @classmethod
     def generate_embeddings(cls, articles):
-        """
-        Generate embeddings with minimal memory usage.
-        """
 
         if not articles:
             return
@@ -35,38 +22,20 @@ class EmbeddingService:
 
         for article in articles:
 
-            title = (article.title or "").strip()
-            summary = (article.summary or "").strip()
-            content = (article.content or "")[:cls.MAX_CONTENT_CHARS].strip()
-
-            text = "\n".join(
+            text = " ".join(
                 filter(
                     None,
                     [
-                        title,
-                        summary,
-                        content,
+                        article.title,
+                        article.summary,
+                        (article.content or "")[:cls.MAX_CONTENT_CHARS],
                     ],
                 )
             )
 
             texts.append(text)
 
-        model = cls.get_model()
+        vectors = cls.vectorizer.transform(texts)
 
-        print("STEP 3", flush=True)
-
-        embeddings = model.encode(
-                texts,
-                batch_size=1,
-                convert_to_numpy=False,
-                normalize_embeddings=True,
-                show_progress_bar=False,
-        )
-
-        print("STEP 4", flush=True)
-
-        for article, embedding in zip(articles, embeddings):
-            article.embedding = embedding.cpu().tolist()
-
-        print("STEP 5", flush=True)
+        for article, vector in zip(articles, vectors):
+            article.embedding = vector.toarray()[0].tolist()
