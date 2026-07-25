@@ -1,13 +1,4 @@
 import traceback
-import gc
-import os
-import psutil
-def log_memory(stage):
-    process = psutil.Process(os.getpid())
-    print(
-        f"🧠 {stage}: {process.memory_info().rss / 1024 / 1024:.2f} MB",
-        flush=True,
-    )
 
 from repositories.article_repository import ArticleRepository
 
@@ -24,7 +15,7 @@ MAX_ARTICLES_PER_RUN = 5
 
 async def fetch_articles():
     try:
-        print("🚀 Starting news ingestion...")
+        
 
         articles = []
         seen_urls = set()
@@ -53,11 +44,11 @@ async def fetch_articles():
             if len(articles) >= MAX_ARTICLES_PER_RUN:
                     break
 
-        print(f"✅ RSS fetched: {len(articles)} articles")
+        
 
         # Extract content only for selected articles
         articles = enrich_articles(articles)
-        print("✅ Content enrichment completed")
+        
 
         existing_urls = await ArticleRepository.get_existing_urls()
 
@@ -75,7 +66,7 @@ async def fetch_articles():
 
             new_articles.append(article)
 
-        print(f"✅ New articles to process: {len(new_articles)}")
+        
 
         clustering_result = {
                 "clusters_created": 0,
@@ -87,36 +78,22 @@ async def fetch_articles():
 
         if new_articles:
 
-            print("⏳ Generating embeddings...", flush=True)
-            log_memory("Before embeddings")
-
             EmbeddingService.generate_embeddings(new_articles)
-            print("✅ Embeddings generated", flush=True)
-
-            log_memory("After embeddings")
-            print("✅ Embeddings generated", flush=True)
-
-            print("⏳ Processing clusters...", flush=True)
-            log_memory("Before clustering")
+            
 
             clustering_result = await ClusterService.process_articles(
             new_articles
             )
 
-            log_memory("After clustering")
-            print("✅ Clustering completed", flush=True)
-
             articles_to_insert = clustering_result.pop("articles")
 
             inserted = len(articles_to_insert)
 
-            print("⏳ Saving articles...")
             await ArticleRepository.bulk_create(
                     articles_to_insert
             )
-            print("✅ Articles saved")
 
-        print("🎉 News ingestion completed")
+
 
         return {
                     "processed": len(articles),

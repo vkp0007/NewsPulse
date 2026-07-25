@@ -1,6 +1,5 @@
 from datetime import UTC, datetime
-import os
-import psutil
+
 
 
 from models.cluster import Cluster
@@ -14,12 +13,8 @@ from services.clustering.keyword_service import KeywordService
 from services.clustering.entity_service import EntityService
 
 
-def log_memory(stage):
-    process = psutil.Process(os.getpid())
-    print(
-        f"🧠 {stage}: {process.memory_info().rss / 1024 / 1024:.2f} MB",
-        flush=True,
-    )
+
+    
 class ClusterService:
 
    
@@ -52,24 +47,24 @@ class ClusterService:
 
         articles_to_insert = []
 
-        print("⏳ Loading clusters...", flush=True)
+        
 
-        log_memory("Before loading clusters")
+        
 
         clusters = await ClusterRepository.get_all_for_clustering()
 
-        log_memory("After loading clusters")
+        
 
-        print(f"Loaded {len(clusters)} clusters", flush=True)
+        
 
         for article in articles:
-            log_memory(f"Before clustering article: {article.title[:40]}")
+            
             
             result = await cls.assign_cluster(
                 article,
                 clusters,
             )
-            log_memory(f"After clustering article: {article.title[:40]}")
+            
 
             if result == "created":
 
