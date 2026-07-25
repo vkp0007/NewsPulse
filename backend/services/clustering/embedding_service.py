@@ -5,8 +5,7 @@ class EmbeddingService:
 
     _model = None
 
-    MODEL_NAME = "all-MiniLM-L6-v2"
-
+    MODEL_NAME = "sentence-transformers/paraphrase-MiniLM-L3-v2"
     MAX_CONTENT_CHARS = 1500
 
     @classmethod
@@ -14,51 +13,31 @@ class EmbeddingService:
         """
         Load the embedding model only once.
         """
-
         if cls._model is None:
-
             print("STEP 1", flush=True)
 
-            cls._model = SentenceTransformer(
-                cls.MODEL_NAME
-            )
+            cls._model = SentenceTransformer(cls.MODEL_NAME)
 
             print("STEP 2", flush=True)
 
         return cls._model
 
     @classmethod
-    def generate_embeddings(
-        cls,
-        articles,
-    ):
+    def generate_embeddings(cls, articles):
         """
-        Generate embeddings for all articles in a single batch.
+        Generate embeddings with minimal memory usage.
         """
 
         if not articles:
-            
             return
 
         texts = []
 
-
-
-        # --------------------------------------------------
-        # Prepare texts
-        # --------------------------------------------------
-
         for article in articles:
 
             title = (article.title or "").strip()
-
             summary = (article.summary or "").strip()
-
-            content = (
-                (article.content or "")
-                [: cls.MAX_CONTENT_CHARS]
-                .strip()
-            )
+            content = (article.content or "")[:cls.MAX_CONTENT_CHARS].strip()
 
             text = "\n".join(
                 filter(
@@ -73,27 +52,21 @@ class EmbeddingService:
 
             texts.append(text)
 
-
-            # --------------------------------------------------
-            # Generate embeddings (ONE BATCH)
-            # --------------------------------------------------
-
         model = cls.get_model()
+
+        print("STEP 3", flush=True)
 
         embeddings = model.encode(
                 texts,
-                batch_size=4,
+                batch_size=1,
+                convert_to_numpy=False,
                 normalize_embeddings=True,
                 show_progress_bar=False,
-            )
+        )
 
-            # --------------------------------------------------
-            # Assign embeddings
-            # --------------------------------------------------
+        print("STEP 4", flush=True)
 
-        for article, embedding in zip(
-                articles,
-                embeddings,
-            ):
+        for article, embedding in zip(articles, embeddings):
+            article.embedding = embedding.cpu().tolist()
 
-                article.embedding = embedding.tolist()
+        print("STEP 5", flush=True)
