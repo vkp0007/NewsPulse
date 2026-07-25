@@ -15,7 +15,7 @@ lxml
 numpy==1.26.4
 scikit-learn
 nltk
-psutil 7.2.2
+psutil==7.2.2
 
 torch==2.2.2
 transformers==4.41.2
