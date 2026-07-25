@@ -17,13 +17,13 @@ class EmbeddingService:
 
         if cls._model is None:
 
-            
+            print("STEP 1", flush=True)
 
             cls._model = SentenceTransformer(
                 cls.MODEL_NAME
             )
 
-            
+            print("STEP 2", flush=True)
 
         return cls._model
 
